@@ -1,26 +1,152 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 230 25% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 229 20% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 229 20% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 250 95% 65%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217 76% 56%;
+    --secondary-foreground: 210 40% 98%;
+
+    --accent: 190 95% 50%;
+    --accent-foreground: 210 40% 98%;
+
+    --muted: 230 25% 16%;
+    --muted-foreground: 215 20% 65%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 230 25% 20%;
+    --input: 230 25% 16%;
+    --ring: 250 95% 65%;
+
+    --radius: 0.75rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.glow-effect {
+  box-shadow: 0 0 15px rgba(149, 128, 255, 0.2), 0 0 30px rgba(149, 128, 255, 0.1);
+}
+
+.glow-text {
+  text-shadow: 0 0 10px rgba(149, 128, 255, 0.3);
+}
+
+.glow-border {
+  box-shadow: inset 0 0 0 1px rgba(149, 128, 255, 0.3);
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, hsl(230, 25%, 12%) 0%, hsl(250, 25%, 14%) 100%);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, hsl(250, 95%, 65%) 0%, hsl(217, 76%, 56%) 100%);
+}
+
+.card-elevation {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-elevation:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+.geometric-pattern {
+  background-image: radial-gradient(rgba(149, 128, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse 2s infinite;
+}
+
+/* Particle effect container */
+.particles-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(230, 25%, 10%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(250, 25%, 25%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(250, 25%, 30%);
 }
