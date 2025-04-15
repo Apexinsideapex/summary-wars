@@ -184,7 +184,7 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
         <Card className="gradient-bg border-border/30 h-full">
           <div className="p-6 flex flex-col h-full">
             <h3 className="text-lg font-semibold mb-4">Score Visualization</h3>
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 min-h-[300px] flex items-center justify-center">
               <RadarChart data={chartData} />
             </div>
           </div>

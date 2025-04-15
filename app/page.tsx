@@ -357,7 +357,8 @@ export default function Home() {
                   onClick={handleEvaluateAll}
                   disabled={isEvaluating || remainingEvals === 0}
                   size="lg"
-                  className="gradient-accent"
+                  variant="default"
+                  className="bg-primary text-primary-foreground"
                 >
                   {isEvaluating ? (
                     <span className="flex items-center">

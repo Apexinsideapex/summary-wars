@@ -1,35 +1,38 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Space_Grotesk } from "next/font/google"
+import { Inter } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import { Providers } from "./providers"
+import { Toaster } from "@/components/ui/toaster"
 
-const spaceGrotesk = Space_Grotesk({
+const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
 })
 
 export const metadata: Metadata = {
-  title: "LLM Summary Evaluator",
-  description: "Evaluate and compare meeting summary quality",
-    generator: 'v0.dev'
+  title: "Summary Wars",
+  description: "Compare AI model summaries",
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${spaceGrotesk.className} antialiased`}>
-        <ThemeProvider>
+      <head>
+        <link href="https://fonts.cdnfonts.com/css/radion-73225f" rel="stylesheet" />
+      </head>
+      <body className={`${inter.className} antialiased font-radion`}>
+        <Providers>
           <div className="geometric-pattern min-h-screen">{children}</div>
-        </ThemeProvider>
+          <Toaster />
+        </Providers>
       </body>
     </html>
   )
 }
-
 
 import './globals.css'

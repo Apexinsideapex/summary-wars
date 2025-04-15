@@ -119,7 +119,8 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
             onClick={handleEvaluate}
             disabled={isEvaluating}
             size="lg"
-            className="gradient-accent relative overflow-hidden group"
+            variant="default"
+            className="bg-primary text-primary-foreground relative overflow-hidden"
           >
             {isEvaluating ? (
               <span className="flex items-center">
@@ -135,7 +136,6 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
                 Evaluate Summaries
               </span>
             )}
-            <span className="absolute bottom-0 left-0 h-1 bg-accent/50 w-full transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
           </Button>
         </div>
       </div>

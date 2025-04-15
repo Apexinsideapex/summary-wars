@@ -39,13 +39,8 @@ export async function POST(request: Request) {
     `
     
 
-
-    let response = await openai.responses.create({
-      model: 'gpt-4.1',
-      input: defaultPrompt + meetingDataString,
-      text: { format: { type: "json_object" } },
-      temperature: 0.2
-    })
+    let response = null;
+    
 
     // let response = await openai.chat.completions.create({
     //   model: "o3-mini",
@@ -60,11 +55,20 @@ export async function POST(request: Request) {
       model: "o3-mini",
       input: o3HighPrompt + meetingDataString,
       reasoning: {
-        effort: 'high'
+        effort: 'medium'
       },
       text: { format: { type: "json_object" } },
       })
     } 
+    else {
+      console.log("Using gpt-4.1")
+      response = await openai.responses.create({
+        model: 'gpt-4.1',
+        input: defaultPrompt + meetingDataString,
+        text: { format: { type: "json_object" } },
+        temperature: 0.2
+      })
+    }
 
     const content = response?.output_text || "{}"
     console.log(content)
