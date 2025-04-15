@@ -1,6 +1,6 @@
 export interface StoredEvaluationResult {
   meetingId: number;
-  model: "4.1" | "o3-high";
+  model: "4.1" | "o3-mini";
   results: any; // Using any for now since the evaluation result structure is complex
   timestamp: number;
 }
@@ -37,7 +37,7 @@ export async function initDB(): Promise<IDBDatabase> {
   });
 }
 
-export async function saveEvaluationResult(meetingId: number, results: any, model: "4.1" | "o3-high"): Promise<void> {
+export async function saveEvaluationResult(meetingId: number, results: any, model: "4.1" | "o3-mini"): Promise<void> {
   const db = await initDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readwrite');
@@ -57,7 +57,7 @@ export async function saveEvaluationResult(meetingId: number, results: any, mode
   });
 }
 
-export async function getEvaluationResult(meetingId: number, model?: "4.1" | "o3-high"): Promise<StoredEvaluationResult | StoredEvaluationResult[] | null> {
+export async function getEvaluationResult(meetingId: number, model?: "4.1" | "o3-mini"): Promise<StoredEvaluationResult | StoredEvaluationResult[] | null> {
   const db = await initDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readonly');

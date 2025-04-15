@@ -43,8 +43,8 @@ export async function POST(request: Request) {
     //   response_format: { type: "json_object" },
     // })
 
-    if (mode === 'o3-high') {
-      console.log("Using o3-high")
+    if (mode === 'o3-mini') {
+      console.log("Using o3-mini")
     response = await openai.responses.create({
       model: "o3-mini",
       input: [

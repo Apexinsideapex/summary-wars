@@ -27,12 +27,12 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { cn } from "@/lib/utils"
 
 export default function Home() {
-  const [evaluationResults, setEvaluationResults] = useState<Record<number, Partial<Record<"4.1" | "o3-high", StoredEvaluationResult>>>>({})
+  const [evaluationResults, setEvaluationResults] = useState<Record<number, Partial<Record<"4.1" | "o3-mini", StoredEvaluationResult>>>>({})
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [progress, setProgress] = useState(0)
   const [remainingEvals, setRemainingEvals] = useState(0)
   const [aggregateResults, setAggregateResults] = useState<any | null>(null)
-  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-high">("4.1")
+  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-mini">("4.1")
 
   useEffect(() => {
     loadAllResults()
@@ -54,7 +54,7 @@ export default function Home() {
         }
         acc[result.meetingId][result.model] = result
         return acc
-      }, {} as Record<number, Partial<Record<"4.1" | "o3-high", StoredEvaluationResult>>>)
+      }, {} as Record<number, Partial<Record<"4.1" | "o3-mini", StoredEvaluationResult>>>)
       
       setEvaluationResults(resultsMap)
       updateRemainingEvals(resultsMap, evaluationMode)
@@ -67,16 +67,16 @@ export default function Home() {
   }
 
   const updateRemainingEvals = (
-    resultsMap: Record<number, Partial<Record<"4.1" | "o3-high", StoredEvaluationResult>>>, 
-    mode: "4.1" | "o3-high"
+    resultsMap: Record<number, Partial<Record<"4.1" | "o3-mini", StoredEvaluationResult>>>, 
+    mode: "4.1" | "o3-mini"
   ) => {
     const remaining = meetings.filter(m => !resultsMap[m.id] || !resultsMap[m.id][mode]).length
     setRemainingEvals(remaining)
   }
 
   const calculateAggregateResults = (
-    resultsMap: Record<number, Partial<Record<"4.1" | "o3-high", StoredEvaluationResult>>>, 
-    mode: "4.1" | "o3-high"
+    resultsMap: Record<number, Partial<Record<"4.1" | "o3-mini", StoredEvaluationResult>>>, 
+    mode: "4.1" | "o3-mini"
   ) => {
     const filteredResults = Object.values(resultsMap)
       .map(modelResults => modelResults[mode])
@@ -161,37 +161,42 @@ export default function Home() {
       return
     }
 
-    let completed = 0
     const newResults = { ...evaluationResults }
+    let completed = 0
 
-    for (const meeting of unevaluatedMeetings) {
-      try {
-        const results = await evaluateSummaries(meeting, evaluationMode)
-        await saveEvaluationResult(meeting.id, results, evaluationMode)
-        
-        if (!newResults[meeting.id]) {
-          newResults[meeting.id] = {}
+    try {
+      await Promise.all(unevaluatedMeetings.map(async (meeting) => {
+        try {
+          const results = await evaluateSummaries(meeting, evaluationMode)
+          await saveEvaluationResult(meeting.id, results, evaluationMode)
+          
+          if (!newResults[meeting.id]) {
+            newResults[meeting.id] = {}
+          }
+          
+          newResults[meeting.id][evaluationMode] = {
+            meetingId: meeting.id,
+            results,
+            timestamp: Date.now(),
+            model: evaluationMode
+          }
+          
+          completed++
+          setProgress((completed / total) * 100)
+        } catch (error) {
+          console.error(`Error evaluating meeting ${meeting.id}:`, error)
         }
-        
-        newResults[meeting.id][evaluationMode] = {
-          meetingId: meeting.id,
-          results,
-          timestamp: Date.now(),
-          model: evaluationMode
-        }
-        
-        completed++
-        setProgress((completed / total) * 100)
-      } catch (error) {
-        console.error(`Error evaluating meeting ${meeting.id}:`, error)
-      }
+      }))
+
+      setEvaluationResults(newResults)
+      calculateAggregateResults(newResults, evaluationMode)
+      setRemainingEvals(0)
+    } catch (error) {
+      console.error('Error in batch evaluation:', error)
+    } finally {
+      setIsEvaluating(false)
+      setProgress(0)
     }
-
-    setEvaluationResults(newResults)
-    calculateAggregateResults(newResults, evaluationMode)
-    setRemainingEvals(0)
-    setIsEvaluating(false)
-    setProgress(0)
   }
 
   const handleClearDatabase = async () => {
@@ -292,8 +297,8 @@ export default function Home() {
                     value={evaluationMode}
                     onValueChange={(value) => {
                       if (value) {
-                        setEvaluationMode(value as "4.1" | "o3-high")
-                        updateRemainingEvals(evaluationResults, value as "4.1" | "o3-high")
+                        setEvaluationMode(value as "4.1" | "o3-mini")
+                        updateRemainingEvals(evaluationResults, value as "4.1" | "o3-mini")
                       }
                     }}
                     className="bg-muted/30 p-1 rounded-lg"
@@ -306,11 +311,11 @@ export default function Home() {
                       4.1
                     </ToggleGroupItem>
                     <ToggleGroupItem
-                      value="o3-high"
-                      aria-label="o3-high"
+                      value="o3-mini"
+                      aria-label="o3-mini"
                       className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
                     >
-                      o3-high
+                      o3-mini
                     </ToggleGroupItem>
                   </ToggleGroup>
                   {remainingEvals > 0 && (

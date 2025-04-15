@@ -23,10 +23,10 @@ interface MeetingComparisonProps {
 export function MeetingComparison({ meeting }: MeetingComparisonProps) {
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [evaluationResults, setEvaluationResults] = useState<any | null>(null)
-  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-high">("4.1")
-  const [savedResults, setSavedResults] = useState<Record<"4.1" | "o3-high", any>>({
+  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-mini">("4.1")
+  const [savedResults, setSavedResults] = useState<Record<"4.1" | "o3-mini", any>>({
     "4.1": null,
-    "o3-high": null
+    "o3-mini": null
   })
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
           const resultsByModel = savedResults.reduce((acc, result) => ({
             ...acc,
             [result.model]: result.results
-          }), {} as Record<"4.1" | "o3-high", any>);
+          }), {} as Record<"4.1" | "o3-mini", any>);
           
           setSavedResults(resultsByModel);
           // Set current evaluation results based on selected mode
@@ -88,7 +88,7 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold glow-text">{meeting.title}</h1>
-          {savedResults["4.1"] && savedResults["o3-high"] && (
+          {savedResults["4.1"] && savedResults["o3-mini"] && (
             <p className="text-sm text-muted-foreground mt-2">
               Evaluated with both models
             </p>
@@ -98,7 +98,7 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
           <ToggleGroup
             type="single"
             value={evaluationMode}
-            onValueChange={(value) => value && setEvaluationMode(value as "4.1" | "o3-high")}
+            onValueChange={(value) => value && setEvaluationMode(value as "4.1" | "o3-mini")}
             className="bg-muted/30 p-1 rounded-lg"
           >
             <ToggleGroupItem
@@ -109,11 +109,11 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
               4.1 {savedResults["4.1"] && "✓"}
             </ToggleGroupItem>
             <ToggleGroupItem
-              value="o3-high"
-              aria-label="o3-high evaluation"
+              value="o3-mini"
+              aria-label="o3-mini evaluation"
               className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
             >
-              o3-high {savedResults["o3-high"] && "✓"}
+              o3-mini {savedResults["o3-mini"] && "✓"}
             </ToggleGroupItem>
           </ToggleGroup>
           <Button

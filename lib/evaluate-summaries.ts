@@ -1,6 +1,6 @@
 import type { EvalData } from "@/types"
 
-export async function evaluateSummaries(meeting: EvalData, mode: "4.1" | "o3-high" = "4.1") {
+export async function evaluateSummaries(meeting: EvalData, mode: "4.1" | "o3-mini" = "4.1") {
   try {
     const response = await fetch("/api/evaluate", {
       method: "POST",
