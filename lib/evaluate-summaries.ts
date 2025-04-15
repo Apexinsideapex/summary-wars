@@ -1,13 +1,13 @@
-import type { Meeting } from "@/types"
+import type { EvalData } from "@/types"
 
-export async function evaluateSummaries(meeting: Meeting) {
+export async function evaluateSummaries(meeting: EvalData, mode: "fast" | "hard" = "fast") {
   try {
     const response = await fetch("/api/evaluate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ meeting }),
+      body: JSON.stringify({ meeting, mode }),
     })
 
     if (!response.ok) {

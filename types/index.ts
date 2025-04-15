@@ -1,9 +1,10 @@
-export interface Meeting {
-  id: string
-  title: string
-  date: string
-  transcript: string
-  notes: string
-  summaryV1: string
-  summaryV2: string
-}
+export type EvalData = {
+  id: number;
+  user: string;
+  title: string;
+  transcript: string;
+  notes: string;
+  summary1: string;
+  summary2: string;
+};
+

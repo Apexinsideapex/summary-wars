@@ -28,6 +28,16 @@ interface EvaluationResultsProps {
       v2Score: number
       explanation: string
     }
+    completeness: {
+      v1Score: number
+      v2Score: number
+      explanation: string
+    }
+    notes: {
+      v1Score: number
+      v2Score: number
+      explanation: string
+    }
     overall: {
       winner: "v1" | "v2" | "tie"
       explanation: string
@@ -41,6 +51,8 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
     { name: "Clarity", data: results.clarity },
     { name: "Conciseness", data: results.conciseness },
     { name: "Relevance", data: results.relevance },
+    { name: "Completeness", data: results.completeness },
+    { name: "Notes", data: results.notes },
   ]
 
   const chartData = {

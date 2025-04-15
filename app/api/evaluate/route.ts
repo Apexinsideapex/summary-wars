@@ -7,7 +7,6 @@ export async function POST(request: Request) {
 
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-      dangerouslyAllowBrowser: true
     })
 
     const prompt = `
@@ -18,6 +17,8 @@ export async function POST(request: Request) {
       2. Clarity: How clear and easy to understand is the summary?
       3. Conciseness: How well does the summary capture the key points without unnecessary details?
       4. Relevance: How well does the summary focus on the most important aspects of the meeting?
+      5. Completeness: How well does the summary cover all the important points of the meeting?
+      6. Notes: How well does the summary capture the notes from the meeting?
       
       For each criterion, provide a score out of 10 for each summary version and a brief explanation.
       
@@ -32,10 +33,10 @@ export async function POST(request: Request) {
       ${meeting.notes}
       
       Summary V1:
-      ${meeting.summaryV1}
+      ${meeting.summary1}
       
       Summary V2:
-      ${meeting.summaryV2}
+      ${meeting.summary2}
       
       Provide your evaluation in the following JSON format:
       {
@@ -59,6 +60,16 @@ export async function POST(request: Request) {
           "v2Score": number,
           "explanation": "string"
         },
+        "completeness": {
+          "v1Score": number,
+          "v2Score": number,
+          "explanation": "string"
+        },
+        "notes": {
+          "v1Score": number,
+          "v2Score": number,
+          "explanation": "string"
+        },
         "overall": {
           "winner": "v1" or "v2" or "tie",
           "explanation": "string"
@@ -66,15 +77,33 @@ export async function POST(request: Request) {
       }
     `
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
-      max_tokens: 2000,
-      response_format: { type: "json_object" },
+    let response = await openai.responses.create({
+      model: 'gpt-4.1',
+      input: prompt,
+      text: { format: { type: "json_object" } }
     })
 
-    const content = response.choices[0].message.content || "{}"
+    // let response = await openai.chat.completions.create({
+    //   model: "o3-mini",
+    //   messages: [{ role: "user", content: prompt }],
+    //   temperature: 0.2,
+    //   response_format: { type: "json_object" },
+    // })
+
+    if (meeting.mode === 'hard') {
+    response = await openai.responses.create({
+      model: "o3-mini",
+      input: prompt,
+      reasoning: {
+        effort: 'high'
+      },
+      text: { format: { type: "json_object" } }
+      })
+    } 
+
+    const content = response?.output_text || "{}"
+    console.log(content)
+    console.log(JSON.parse(content))
     return NextResponse.json(JSON.parse(content))
   } catch (error) {
     console.error("Error in API route:", error)

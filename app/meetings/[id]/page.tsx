@@ -3,8 +3,9 @@ import { Sidebar } from "@/components/sidebar"
 import { meetings } from "@/data/meetings"
 import { notFound } from "next/navigation"
 
-export default function MeetingPage({ params }: { params: { id: string } }) {
-  const meeting = meetings.find((m) => m.id === params.id)
+export default async function MeetingPage({ params }: { params: Promise<{ id: string }> }) {
+  const id = (await params).id
+  const meeting = meetings.find((m) => m.id === parseInt(id))
 
   if (!meeting) {
     return notFound()

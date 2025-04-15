@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import type { Meeting } from "@/types"
+import type { EvalData } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { EvaluationResults } from "@/components/evaluation-results"
 import { evaluateSummaries } from "@/lib/evaluate-summaries"
@@ -13,17 +14,18 @@ import { FileText, MessageSquare, ClipboardList, Sparkles } from "lucide-react"
 import { ParticleContainer } from "@/components/particle-container"
 
 interface MeetingComparisonProps {
-  meeting: Meeting
+  meeting: EvalData
 }
 
 export function MeetingComparison({ meeting }: MeetingComparisonProps) {
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [evaluationResults, setEvaluationResults] = useState<any | null>(null)
+  const [evaluationMode, setEvaluationMode] = useState<"fast" | "hard">("fast")
 
   const handleEvaluate = async () => {
     setIsEvaluating(true)
     try {
-      const results = await evaluateSummaries(meeting)
+      const results = await evaluateSummaries(meeting, evaluationMode)
       setEvaluationResults(results)
     } catch (error) {
       console.error("Error evaluating summaries:", error)
@@ -42,30 +44,52 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold glow-text">{meeting.title}</h1>
-          <p className="text-muted-foreground mt-1">{meeting.date}</p>
         </div>
-        <Button
-          onClick={handleEvaluate}
-          disabled={isEvaluating}
-          size="lg"
-          className="gradient-accent relative overflow-hidden group"
-        >
-          {isEvaluating ? (
-            <span className="flex items-center">
-              <span className="animate-pulse-glow mr-2">Analyzing</span>
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-accent"></span>
+        <div className="flex items-center gap-3">
+          <ToggleGroup
+            type="single"
+            value={evaluationMode}
+            onValueChange={(value) => value && setEvaluationMode(value as "fast" | "hard")}
+            className="bg-muted/30 p-1 rounded-lg"
+          >
+            <ToggleGroupItem
+              value="fast"
+              aria-label="Fast evaluation"
+              className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
+            >
+              Fast
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="hard"
+              aria-label="Hard evaluation"
+              className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
+            >
+              Hard
+            </ToggleGroupItem>
+          </ToggleGroup>
+          <Button
+            onClick={handleEvaluate}
+            disabled={isEvaluating}
+            size="lg"
+            className="gradient-accent relative overflow-hidden group"
+          >
+            {isEvaluating ? (
+              <span className="flex items-center">
+                <span className="animate-pulse-glow mr-2">Analyzing</span>
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-accent"></span>
+                </span>
               </span>
-            </span>
-          ) : (
-            <span className="flex items-center">
-              <Sparkles size={18} className="mr-2" />
-              Evaluate Summaries
-            </span>
-          )}
-          <span className="absolute bottom-0 left-0 h-1 bg-accent/50 w-full transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
-        </Button>
+            ) : (
+              <span className="flex items-center">
+                <Sparkles size={18} className="mr-2" />
+                Evaluate Summaries
+              </span>
+            )}
+            <span className="absolute bottom-0 left-0 h-1 bg-accent/50 w-full transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="summaries" className="w-full">
@@ -102,7 +126,7 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
                   <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">Version 1</span>
                 </div>
                 <div className="prose prose-invert max-w-none">
-                  <MarkdownRenderer content={meeting.summaryV1} />
+                  <MarkdownRenderer content={meeting.summary1} />
                 </div>
               </div>
             </Card>
@@ -114,7 +138,7 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
                   <span className="px-2 py-1 bg-secondary/10 text-secondary text-xs rounded-full">Version 2</span>
                 </div>
                 <div className="prose prose-invert max-w-none">
-                  <MarkdownRenderer content={meeting.summaryV2} />
+                  <MarkdownRenderer content={meeting.summary2} />
                 </div>
               </div>
             </Card>
