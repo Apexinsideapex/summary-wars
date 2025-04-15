@@ -43,10 +43,11 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    // Update displayed results when mode changes
+    // Update displayed results and remaining evals when mode or results change
     if (Object.keys(evaluationResults).length > 0) {
       calculateAggregateResults(evaluationResults, evaluationMode)
     }
+    updateRemainingEvals(evaluationResults, evaluationMode)
   }, [evaluationMode, evaluationResults])
 
   // Load overall analysis from IndexedDB on mount
@@ -84,10 +85,6 @@ export default function Home() {
       }, {} as Record<number, Partial<Record<"4.1" | "o3-mini", StoredEvaluationResult>>>)
       
       setEvaluationResults(resultsMap)
-      updateRemainingEvals(resultsMap, evaluationMode)
-      if (Object.keys(resultsMap).length > 0) {
-        calculateAggregateResults(resultsMap, evaluationMode)
-      }
     } catch (error) {
       console.error("Error loading evaluation results:", error)
     }
@@ -497,6 +494,16 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground text-center">
                   Evaluating meetings... {Math.round(progress)}% complete
                 </p>
+              </div>
+            )}
+
+            {isAnalyzing && (
+              <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-muted/40 border border-border/40">
+                <span className="relative flex h-4 w-4">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-4 w-4 bg-primary"></span>
+                </span>
+                <span className="text-base font-medium text-muted-foreground">Overall AI analysis description is being generated</span>
               </div>
             )}
 
