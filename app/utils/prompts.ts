@@ -54,6 +54,12 @@ For this critical criterion, perform a detailed analysis:
 
 This detailed notes integration analysis should strongly influence your overall winner determination, as it represents Granola's core value proposition.
 
+# Overall Score Calculation
+When determining the overall winner:
+- Notes Integration criterion is weighted 2x as heavily as other criteria
+- Calculate: (Truthfulness + Clarity + Conciseness + Relevance + Completeness + (Notes Integration × 2)) ÷ 7
+- The summary with the higher weighted score is the winner
+
 # Output Format
 The output should be a JSON object with the following format:
 {
@@ -172,6 +178,12 @@ This detailed notes integration analysis should strongly influence your overall 
 
 ## Step 5: Score and Explain
 For each criterion, assign scores based on your systematic analysis.
+
+# Overall Score Calculation
+When determining the overall winner:
+- Notes Integration criterion is weighted 2x as heavily as other criteria
+- Calculate: (Truthfulness + Clarity + Conciseness + Relevance + Completeness + (Notes Integration × 2)) ÷ 7
+- The summary with the higher weighted score is the winner
 
 # Output Format
 The output should be a JSON object with the following format:
