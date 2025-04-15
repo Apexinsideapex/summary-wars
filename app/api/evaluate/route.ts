@@ -7,7 +7,7 @@ if (!process.env.OPENAI_API_KEY) {
 
 export async function POST(request: Request) {
   try {
-    const { meeting } = await request.json()
+    const { meeting, mode } = await request.json()
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
@@ -20,6 +20,7 @@ export async function POST(request: Request) {
       apiKey: process.env.OPENAI_API_KEY,
     })
 
+    // Index DB, Tune prompt, highlight winner, fix side bar: remove analytics settings and user. 
     const prompt = `
       You are an expert at evaluating meeting summaries. You will be provided with two versions of a summary for the same meeting, along with the meeting transcript and notes.
       
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
     `
 
     let response = await openai.responses.create({
-      model: 'gpt-4.1',
+      model: 'gpt-4o-mini',
       input: prompt,
       text: { format: { type: "json_object" } }
     })
@@ -101,7 +102,8 @@ export async function POST(request: Request) {
     //   response_format: { type: "json_object" },
     // })
 
-    if (meeting.mode === 'hard') {
+    if (mode === 'o3-high') {
+      console.log("Using o3-high")
     response = await openai.responses.create({
       model: "o3-mini",
       input: prompt,

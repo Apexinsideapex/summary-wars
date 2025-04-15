@@ -3,13 +3,13 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import type { Meeting } from "@/types"
+import type { EvalData } from "@/types"
 import { cn } from "@/lib/utils"
-import { Home, FileText, BarChart2, Settings, Menu, X, ChevronRight } from "lucide-react"
+import { Home, FileText, Menu, X, ChevronRight } from "lucide-react"
 import { useState } from "react"
 
 interface SidebarProps {
-  meetings: Meeting[]
+  meetings: EvalData[]
 }
 
 export function Sidebar({ meetings }: SidebarProps) {
@@ -39,7 +39,7 @@ export function Sidebar({ meetings }: SidebarProps) {
       <motion.div
         className={cn(
           "fixed top-0 left-0 z-40 h-full bg-card border-r border-border/30 glow-border",
-          expanded ? "w-64" : "w-16",
+          expanded ? "w-64" : "w-20",
           "transition-all duration-300 ease-in-out",
           "md:relative md:z-0",
         )}
@@ -53,49 +53,67 @@ export function Sidebar({ meetings }: SidebarProps) {
               Summary<span className="text-accent">AI</span>
             </h1>
           ) : (
-            <span className="text-xl font-bold text-accent">AI</span>
+            <div className="w-full flex justify-center">
+              <span className="text-xl font-bold text-accent">AI</span>
+            </div>
           )}
-          <button className="p-1 rounded-full hover:bg-muted transition-colors" onClick={() => setExpanded(!expanded)}>
+          <button 
+            className={cn(
+              "p-1 rounded-full hover:bg-muted transition-colors",
+              !expanded && "absolute right-1 top-4"
+            )} 
+            onClick={() => setExpanded(!expanded)}
+          >
             <ChevronRight
-              size={18}
+              size={16}
               className={cn("transition-transform duration-300", expanded ? "rotate-180" : "rotate-0")}
             />
           </button>
         </div>
 
         <nav className="flex-1 overflow-auto p-4">
-          <ul className="space-y-2">
+          <ul className="space-y-4">
             <li>
               <Link
                 href="/"
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
                   "hover:bg-muted/50",
                   pathname === "/" ? "bg-primary/10 text-primary" : "text-foreground/80",
-                  !expanded && "justify-center",
+                  !expanded && "justify-center px-0",
                 )}
                 onClick={() => setExpanded(false)}
               >
-                <Home size={20} className={pathname === "/" ? "text-primary" : ""} />
+                <div className={cn(
+                  "flex items-center justify-center",
+                  !expanded && "w-full h-10"
+                )}>
+                  <Home size={20} className={pathname === "/" ? "text-primary" : ""} />
+                </div>
                 {expanded && <span>Overview</span>}
               </Link>
             </li>
 
-            <li className="pt-4">
+            <li>
               <button
                 onClick={() => setMeetingsExpanded(!meetingsExpanded)}
                 className={cn(
-                  "flex items-center w-full gap-3 px-3 py-2 rounded-lg transition-colors",
+                  "flex items-center w-full gap-3 px-3 py-2.5 rounded-lg transition-colors",
                   "hover:bg-muted/50 text-foreground/80",
-                  !expanded && "justify-center",
+                  !expanded && "justify-center px-0",
                 )}
               >
-                <FileText size={20} />
+                <div className={cn(
+                  "flex items-center justify-center",
+                  !expanded && "w-full h-10"
+                )}>
+                  <FileText size={20} />
+                </div>
                 {expanded && (
                   <>
                     <span className="flex-1">Meetings</span>
                     <ChevronRight
-                      size={16}
+                      size={14}
                       className={cn("transition-transform duration-300", meetingsExpanded ? "rotate-90" : "rotate-0")}
                     />
                   </>
@@ -132,40 +150,19 @@ export function Sidebar({ meetings }: SidebarProps) {
                 </motion.ul>
               )}
             </li>
-
-            <li className="pt-4">
-              <Link
-                href="#analytics"
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                  "hover:bg-muted/50 text-foreground/80",
-                  !expanded && "justify-center",
-                )}
-              >
-                <BarChart2 size={20} />
-                {expanded && <span>Analytics</span>}
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="#settings"
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                  "hover:bg-muted/50 text-foreground/80",
-                  !expanded && "justify-center",
-                )}
-              >
-                <Settings size={20} />
-                {expanded && <span>Settings</span>}
-              </Link>
-            </li>
           </ul>
         </nav>
 
         <div className="p-4 border-t border-border/30">
-          <div className={cn("flex items-center gap-3 px-3 py-2 rounded-lg", !expanded && "justify-center")}>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-medium">
+          <div className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg", 
+            !expanded && "justify-center px-0"
+          )}>
+            <div className={cn(
+              "flex items-center justify-center",
+              expanded ? "w-8 h-8" : "w-10 h-10",
+              "rounded-full bg-gradient-to-br from-primary to-secondary text-white font-medium"
+            )}>
               G
             </div>
             {expanded && (
