@@ -23,7 +23,7 @@ interface MeetingComparisonProps {
 export function MeetingComparison({ meeting }: MeetingComparisonProps) {
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [evaluationResults, setEvaluationResults] = useState<any | null>(null)
-  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-mini">("4.1")
+  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-mini">("o3-mini")
   const [savedResults, setSavedResults] = useState<Record<"4.1" | "o3-mini", any>>({
     "4.1": null,
     "o3-mini": null
@@ -98,22 +98,22 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
           <ToggleGroup
             type="single"
             value={evaluationMode}
-            onValueChange={(value) => value && setEvaluationMode(value as "4.1" | "o3-mini")}
+            onValueChange={(value) => value && setEvaluationMode(value as "o3-mini" | "4.1")}
             className="bg-muted/30 p-1 rounded-lg"
           >
-            <ToggleGroupItem
-              value="4.1"
-              aria-label="4.1 evaluation"
-              className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
-            >
-              4.1 {savedResults["4.1"] && "✓"}
-            </ToggleGroupItem>
             <ToggleGroupItem
               value="o3-mini"
               aria-label="o3-mini evaluation"
               className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
             >
               o3-mini {savedResults["o3-mini"] && "✓"}
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="4.1"
+              aria-label="4.1 evaluation"
+              className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
+            >
+              4.1 <span className="text-xs text-muted-foreground align-middle">(exp)</span> {savedResults["4.1"] && "✓"}
             </ToggleGroupItem>
           </ToggleGroup>
           <Button

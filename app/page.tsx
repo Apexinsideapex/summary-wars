@@ -1,10 +1,11 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
+import Link from "next/link"
 import { Sidebar } from "@/components/sidebar"
 import { meetings } from "@/data/meetings"
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
-import { getAllEvaluationResults, StoredEvaluationResult, clearAllEvaluationResults } from "@/lib/indexdb"
+import { getAllEvaluationResults, StoredEvaluationResult, clearAllEvaluationResults, getOverallAnalysis, saveOverallAnalysis } from "@/lib/indexdb"
 import { CheckCircle2, HelpCircle, Sparkles, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { evaluateSummaries } from "@/lib/evaluate-summaries"
@@ -32,7 +33,10 @@ export default function Home() {
   const [progress, setProgress] = useState(0)
   const [remainingEvals, setRemainingEvals] = useState(0)
   const [aggregateResults, setAggregateResults] = useState<any | null>(null)
-  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-mini">("4.1")
+  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-mini">("o3-mini")
+  const [overallAnalysis, setOverallAnalysis] = useState<Record<string, any> | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const lastResultsRef = useRef<string>("")
 
   useEffect(() => {
     loadAllResults()
@@ -44,6 +48,29 @@ export default function Home() {
       calculateAggregateResults(evaluationResults, evaluationMode)
     }
   }, [evaluationMode, evaluationResults])
+
+  // Load overall analysis from IndexedDB on mount
+  useEffect(() => {
+    const loadOverall = async () => {
+      const stored = await getOverallAnalysis(0)
+      if (stored && stored.analysis) {
+        setOverallAnalysis(stored.analysis)
+      }
+    }
+    loadOverall()
+  }, [])
+
+  // Only re-analyze when evaluationResults actually change
+  useEffect(() => {
+    const serialized = JSON.stringify(evaluationResults)
+    if (serialized !== lastResultsRef.current) {
+      lastResultsRef.current = serialized
+      if (Object.keys(evaluationResults).length > 0) {
+        fetchOverallAnalysis()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [evaluationResults])
 
   const loadAllResults = async () => {
     try {
@@ -148,6 +175,87 @@ export default function Home() {
     setAggregateResults(aggregate)
   }
 
+  const fetchOverallAnalysis = async () => {
+    try {
+      setIsAnalyzing(true)
+      // Get all results from IndexedDB
+      const allResults = await getAllEvaluationResults()
+      
+      // Group results by model
+      const resultsByModel = allResults.reduce((acc, result) => {
+        if (!acc[result.model]) {
+          acc[result.model] = []
+        }
+        acc[result.model].push(result)
+        return acc
+      }, {} as Record<string, StoredEvaluationResult[]>)
+
+      // Prepare the data in the format expected by the API
+      const analysisData = Object.entries(resultsByModel).map(([model, modelResults]) => {
+        const explanations = {
+          truthfulness: [] as string[],
+          clarity: [] as string[],
+          conciseness: [] as string[],
+          relevance: [] as string[],
+          completeness: [] as string[],
+          notes: [] as string[],
+          overall: [] as string[]
+        }
+
+        modelResults.forEach((result, index) => {
+          const r = result.results
+          const meetingNum = index + 1
+          
+          explanations.truthfulness.push(`Meeting #${meetingNum}: ${r.truthfulness.v1Score} - ${r.truthfulness.v2Score} - ${r.truthfulness.explanation}`)
+          explanations.clarity.push(`Meeting #${meetingNum}: ${r.clarity.v1Score} - ${r.clarity.v2Score} - ${r.clarity.explanation}`)
+          explanations.conciseness.push(`Meeting #${meetingNum}: ${r.conciseness.v1Score} - ${r.conciseness.v2Score} - ${r.conciseness.explanation}`)
+          explanations.relevance.push(`Meeting #${meetingNum}: ${r.relevance.v1Score} - ${r.relevance.v2Score} - ${r.relevance.explanation}`)
+          explanations.completeness.push(`Meeting #${meetingNum}: ${r.completeness.v1Score} - ${r.completeness.v2Score} - ${r.completeness.explanation}`)
+          explanations.notes.push(`Meeting #${meetingNum}: ${r.notes.v1Score} - ${r.notes.v2Score} - ${r.notes.explanation}`)
+          explanations.overall.push(`Meeting #${meetingNum}: Winner: ${r.overall.winner} - ${r.overall.explanation}`)
+        })
+
+        return {
+          model,
+          totalEvaluations: modelResults.length,
+          explanations: {
+            truthfulness: explanations.truthfulness.join('\n\n'),
+            clarity: explanations.clarity.join('\n\n'),
+            conciseness: explanations.conciseness.join('\n\n'),
+            relevance: explanations.relevance.join('\n\n'),
+            completeness: explanations.completeness.join('\n\n'),
+            notes: explanations.notes.join('\n\n'),
+            overall: explanations.overall.join('\n\n')
+          }
+        }
+      })
+
+      // Send the prepared data to the API
+      const response = await fetch('/api/analyze-results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: analysisData }),
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        // Store all analyses by model
+        const allAnalyses: Record<string, any> = {}
+        data.data.forEach((a: any) => {
+          allAnalyses[a.model] = a.analysis
+        })
+        setOverallAnalysis(allAnalyses)
+        await saveOverallAnalysis(0, allAnalyses)
+      }
+    } catch (error) {
+      console.error("Error fetching overall analysis:", error)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
   const handleEvaluateAll = async () => {
     setIsEvaluating(true)
     const unevaluatedMeetings = meetings.filter(m => 
@@ -234,7 +342,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <a href={`/meetings/${meeting.id}`} className="block h-full">
+                <Link href={`/meetings/${meeting.id}`} className="block h-full">
                   <div className="h-full gradient-bg rounded-xl p-6 border border-border/30 card-elevation hover:border-primary/30 transition-colors">
                     <h2 className="text-xl font-semibold mb-4">{meeting.title}</h2>
                     
@@ -282,7 +390,7 @@ export default function Home() {
                       </Badge>
                     )}
                   </div>
-                </a>
+                </Link>
               </motion.div>
             ))}
           </div>
@@ -304,18 +412,18 @@ export default function Home() {
                     className="bg-muted/30 p-1 rounded-lg"
                   >
                     <ToggleGroupItem
-                      value="4.1"
-                      aria-label="4.1"
-                      className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
-                    >
-                      4.1
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
                       value="o3-mini"
                       aria-label="o3-mini"
                       className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
                     >
                       o3-mini
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="4.1"
+                      aria-label="4.1"
+                      className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
+                    >
+                      4.1 <span className="text-xs text-muted-foreground align-middle">(exp)</span>
                     </ToggleGroupItem>
                   </ToggleGroup>
                   {remainingEvals > 0 && (
@@ -397,6 +505,36 @@ export default function Home() {
                 <div className="p-6">
                   <h3 className="text-xl font-bold mb-6">Aggregate Results</h3>
                   <EvaluationResults results={aggregateResults} />
+                  
+                  {overallAnalysis && overallAnalysis[evaluationMode] && (
+                    <div className="mt-8 space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-semibold">Overall Analysis</h4>
+                        {isAnalyzing && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <span className="relative flex h-3 w-3">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                            </span>
+                            <span className="text-sm">Analyzing results...</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(overallAnalysis[evaluationMode]).map(([criterion, explanation]) => (
+                          <motion.div
+                            key={criterion}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-muted/30 rounded-lg p-4 border border-border/30"
+                          >
+                            <h5 className="font-medium capitalize mb-2">{criterion}</h5>
+                            <p className="text-sm text-muted-foreground">{explanation as string}</p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             )}

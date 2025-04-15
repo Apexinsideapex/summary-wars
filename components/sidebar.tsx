@@ -82,7 +82,11 @@ export function Sidebar({ meetings }: SidebarProps) {
                   pathname === "/" ? "bg-primary/10 text-primary" : "text-foreground/80",
                   !expanded && "justify-center px-0",
                 )}
-                onClick={() => setExpanded(false)}
+                onClick={() => {
+                  if (window.innerWidth < 768) { // Only collapse on mobile
+                    setExpanded(false)
+                  }
+                }}
               >
                 <div className={cn(
                   "flex items-center justify-center",
@@ -141,7 +145,11 @@ export function Sidebar({ meetings }: SidebarProps) {
                           "hover:bg-muted/50",
                           pathname === `/meetings/${meeting.id}` ? "text-primary bg-primary/5" : "text-foreground/70",
                         )}
-                        onClick={() => setExpanded(false)}
+                        onClick={() => {
+                          if (window.innerWidth < 768) { // Only collapse on mobile
+                            setExpanded(false)
+                          }
+                        }}
                       >
                         <span className="truncate">{meeting.title}</span>
                       </Link>

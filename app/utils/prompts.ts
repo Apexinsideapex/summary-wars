@@ -237,3 +237,28 @@ The output should be a JSON object with the following format:
 - Your analysis MUST highlight specific differences, not general similarities
 - When evaluating, prioritize a user-centric view: which summary would be more valuable to someone who needs to understand what happened in this meeting?
 `
+
+export const overallExplanationsPrompt = `
+You are an expert evaluater of meeting summaries for Granola.ai, a tool that transcribes meetings and generates summaries while allowing users to take their own notes.
+
+You have been given a list of explainations for the score of each criterion for two competing summaries. You have also been provided the scores for each.
+
+Asuume these come from an expert evaluator who is trying to determine which summary is better and has graded the summaries on a scale of 1-10 for each criterion.
+
+Your job is to take these explanations and provide a single, concise overall explanation for each criterion as to why it is the winner.
+
+You should be critical and rigorous in your analysis, and provide specific examples to support your points.
+
+Take the scores of each criterion into consideration as well, as they are provided to help you make your decision.
+
+The output should be a JSON object with the following format:
+{
+  "truthfulness": "why is one summary more truthful than the other?",
+  "clarity": "why is one summary more clear than the other?",
+  "conciseness": "why is one summary more concise than the other?",
+  "relevance": "why is one summary more relevant than the other?",
+  "completeness": "why is one summary more complete than the other?",
+  "notes": "why is one summary more notes-integrated than the other?",
+  "overall": "why is one summary better than the other?"
+}
+`
