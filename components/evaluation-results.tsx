@@ -80,15 +80,14 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold glow-text">Evaluation Results</h2>
         <Badge
-          variant={results.overall.winner === "tie" ? "outline" : "default"}
           className={`
             px-3 py-1 text-sm font-medium
             ${
               results.overall.winner === "v1"
-                ? "bg-primary text-primary-foreground"
+                ? "bg-purple-500/10 text-purple-500 border-purple-500/30"
                 : results.overall.winner === "v2"
-                  ? "bg-secondary text-secondary-foreground"
-                  : "bg-muted text-muted-foreground border-border"
+                  ? "bg-teal-500/10 text-teal-500 border-teal-500/30"
+                  : "bg-muted/50 text-muted-foreground border-muted/50"
             }
           `}
         >

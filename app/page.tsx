@@ -61,18 +61,6 @@ export default function Home() {
     loadOverall()
   }, [])
 
-  // Only re-analyze when evaluationResults actually change
-  useEffect(() => {
-    const serialized = JSON.stringify(evaluationResults)
-    if (serialized !== lastResultsRef.current) {
-      lastResultsRef.current = serialized
-      if (Object.keys(evaluationResults).length > 0) {
-        fetchOverallAnalysis()
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [evaluationResults])
-
   const loadAllResults = async () => {
     try {
       const results = await getAllEvaluationResults()
@@ -351,10 +339,10 @@ export default function Home() {
                             px-3 py-1 text-sm font-medium
                             ${
                               evaluationResults[meeting.id]![evaluationMode]!.results.overall.winner === "v1"
-                                ? "bg-primary text-primary-foreground"
+                                ? "bg-purple-500/10 text-purple-500 border-purple-500/30"
                                 : evaluationResults[meeting.id]![evaluationMode]!.results.overall.winner === "v2"
-                                  ? "bg-secondary text-secondary-foreground"
-                                  : "bg-muted text-muted-foreground border-border"
+                                  ? "bg-teal-500/10 text-teal-500 border-teal-500/30"
+                                  : "bg-muted/50 text-muted-foreground border-muted/50"
                             }
                           `}
                         >
@@ -423,11 +411,6 @@ export default function Home() {
                       4.1 <span className="text-xs text-muted-foreground align-middle">(exp)</span>
                     </ToggleGroupItem>
                   </ToggleGroup>
-                  {remainingEvals > 0 && (
-                    <p className="text-muted-foreground">
-                      {remainingEvals} meeting{remainingEvals !== 1 ? 's' : ''} remaining to evaluate
-                    </p>
-                  )}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -497,7 +480,7 @@ export default function Home() {
               </div>
             )}
 
-            {isAnalyzing && (
+            {/* {isAnalyzing && (
               <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-muted/40 border border-border/40">
                 <span className="relative flex h-4 w-4">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
@@ -505,18 +488,39 @@ export default function Home() {
                 </span>
                 <span className="text-base font-medium text-muted-foreground">Overall AI analysis description is being generated</span>
               </div>
-            )}
+            )} */}
 
             {aggregateResults && (
               <Card className="gradient-bg border-border/30">
                 <div className="p-6">
-                  <h3 className="text-xl font-bold mb-6">Aggregate Results</h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold">Aggregate Results</h3>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={fetchOverallAnalysis}
+                      disabled={isAnalyzing}
+                      className="flex items-center gap-2"
+                    >
+                      {isAnalyzing ? (
+                        <span className="flex items-center">
+                          <span className="relative flex h-3 w-3 mr-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                          </span>
+                          Generating...
+                        </span>
+                      ) : (
+                        <span>Explain</span>
+                      )}
+                    </Button>
+                  </div>
                   <EvaluationResults results={aggregateResults} />
                   
                   {overallAnalysis && overallAnalysis[evaluationMode] && (
                     <div className="mt-8 space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-lg font-semibold">Overall Analysis</h4>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-xl font-bold glow-text">Overall Analysis</h4>
                         {isAnalyzing && (
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <span className="relative flex h-3 w-3">
@@ -535,8 +539,8 @@ export default function Home() {
                             animate={{ opacity: 1, y: 0 }}
                             className="bg-muted/30 rounded-lg p-4 border border-border/30"
                           >
-                            <h5 className="font-medium capitalize mb-2">{criterion}</h5>
-                            <p className="text-sm text-muted-foreground">{explanation as string}</p>
+                            <h5 className="font-semibold text-base capitalize mb-2 text-foreground">{criterion}</h5>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{explanation as string}</p>
                           </motion.div>
                         ))}
                       </div>

@@ -251,6 +251,8 @@ You should be critical and rigorous in your analysis, and provide specific examp
 
 Take the scores of each criterion into consideration as well, as they are provided to help you make your decision.
 
+In the ouptut do not say "v1" or "v2", just say summary 1 or summary 2.
+
 The output should be a JSON object with the following format:
 {
   "truthfulness": "why is one summary more truthful than the other?",
