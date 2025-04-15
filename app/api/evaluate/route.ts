@@ -1,6 +1,7 @@
 import { OpenAI } from "openai"
 import { NextResponse } from "next/server"
 import { defaultPrompt, o3HighPrompt } from "@/app/utils/prompts"
+import { splitTranscript } from "@/lib/utils"
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing environment variable: OPENAI_API_KEY")
@@ -23,25 +24,18 @@ export async function POST(request: Request) {
 
     // Index DB, Tune prompt, highlight winner, fix side bar: remove analytics settings and user. 
     const meetingDataString = `
-      Meeting Title: ${meeting.title}
-
-      Transcript:
-      ${meeting.transcript}
-
-      Notes:
-      ${meeting.notes}
-
-      Summary V1:
-      ${meeting.summary1}
-
-      Summary V2:
-      ${meeting.summary2}
+      - Meeting Title: ${meeting.title}
+      - Transcript: ${splitTranscript(meeting.transcript).map(segment => `${segment.speaker}: ${segment.text}`).join('\n')}
+      - Notes: ${meeting.notes}
+      - Summary V1: ${meeting.summary1}
+      - Summary V2: ${meeting.summary2}
     `
     
 
     let response = null;
     
-
+    console.log("Mode: ", mode)
+    console.log("Meeting Data String: ", meetingDataString)
     // let response = await openai.chat.completions.create({
     //   model: "o3-mini",
     //   messages: [{ role: "user", content: prompt }],
@@ -53,7 +47,16 @@ export async function POST(request: Request) {
       console.log("Using o3-high")
     response = await openai.responses.create({
       model: "o3-mini",
-      input: o3HighPrompt + meetingDataString,
+      input: [
+        {
+          role: "system",
+          content: o3HighPrompt
+        },
+        {
+          role: "user",
+          content: meetingDataString
+        }
+      ],
       reasoning: {
         effort: 'medium'
       },
@@ -64,7 +67,16 @@ export async function POST(request: Request) {
       console.log("Using gpt-4.1")
       response = await openai.responses.create({
         model: 'gpt-4.1',
-        input: defaultPrompt + meetingDataString,
+        input: [
+          {
+            role: "system",
+            content: o3HighPrompt
+          },
+          {
+            role: "user",
+            content: meetingDataString
+          }
+        ],
         text: { format: { type: "json_object" } },
         temperature: 0.2
       })

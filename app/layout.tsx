@@ -25,7 +25,7 @@ export default function RootLayout({
       <head>
         <link href="https://fonts.cdnfonts.com/css/radion-73225f" rel="stylesheet" />
       </head>
-      <body className={`${inter.className} antialiased font-radion`}>
+      <body className="antialiased font-radion">
         <Providers>
           <div className="geometric-pattern min-h-screen">{children}</div>
           <Toaster />

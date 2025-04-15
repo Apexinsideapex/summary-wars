@@ -66,10 +66,10 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Radion 73225f', 'Radion Fallback 73225f', system-ui, sans-serif;
+    font-family: 'Radion 73225f', sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Radion 73225f', 'Radion Fallback 73225f', system-ui, sans-serif;
+    font-family: 'Radion 73225f', sans-serif;
   }
 }
 

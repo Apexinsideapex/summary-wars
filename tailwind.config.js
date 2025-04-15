@@ -15,11 +15,11 @@ module.exports = {
         "2xl": "1400px",
       },
     },
+    fontFamily: {
+      sans: ['Radion 73225f', 'sans-serif'],
+      radion: ['Radion 73225f', 'sans-serif'],
+    },
     extend: {
-      fontFamily: {
-        sans: ['Radion 73225f', 'Radion Fallback 73225f', 'system-ui', 'sans-serif'],
-        radion: ['Radion 73225f', 'Radion Fallback 73225f', 'system-ui', 'sans-serif'],
-      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

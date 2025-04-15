@@ -94,6 +94,8 @@ The output should be a JSON object with the following format:
     "explanation": "Analysis of how well each summary reflects the user's notes"
   },
   "overall": {
+    "v1Score": number,
+    "v2Score": number,
     "winner": "v1" or "v2" or "tie",
     "explanation": "Comprehensive justification of which summary better serves Granola users, with specific examples"
   }
@@ -101,6 +103,7 @@ The output should be a JSON object with the following format:
 
 # FINAL REMINDER
 - You MUST identify a clear winner
+- If notes do not exist, you MUST score the summaries 0 for the notes criterion
 - Scores MUST differ meaningfully
 - Your analysis MUST highlight specific differences, not general similarities
 - When evaluating, prioritize a user-centric view: which summary would be more valuable to someone who needs to understand what happened in this meeting?
@@ -166,6 +169,7 @@ For this critical criterion, perform a detailed analysis:
 
 3. Notes Context Enhancement:
    - Analyze how well each summary provides additional context around the user's notes
+   - Check how well the summary aguments the user's notes by correcting any errors or adding additional context which is most important 
    - Determine if the summary clarifies cryptic or shorthand notes
    - Assess if the summary connects related notes that appear separate in the user's raw notes
 
@@ -219,6 +223,8 @@ The output should be a JSON object with the following format:
     "explanation": "Logical analysis based on alignment with user notes"
   },
   "overall": {
+    "v1Score": number,
+    "v2Score": number,
     "winner": "v1" or "v2" or "tie",
     "explanation": "Reasoned conclusion based on systematic evaluation"
   }
@@ -226,6 +232,7 @@ The output should be a JSON object with the following format:
 
 # FINAL REMINDER
 - You MUST identify a clear winner
+- If notes do not exist, you MUST score the summaries 0 for the notes criterion
 - Scores MUST differ meaningfully
 - Your analysis MUST highlight specific differences, not general similarities
 - When evaluating, prioritize a user-centric view: which summary would be more valuable to someone who needs to understand what happened in this meeting?

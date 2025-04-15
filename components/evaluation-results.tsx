@@ -194,23 +194,51 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
       <Card className="gradient-bg border-border/30 glow-effect">
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-4">Overall Assessment</h3>
-          <div className="flex items-center mb-4">
-            {results.overall.winner === "v1" ? (
-              <div className="flex items-center text-primary">
-                <CheckCircle2 size={20} className="mr-2" />
-                <span className="font-medium">Summary V1 is recommended</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              {results.overall.winner === "v1" ? (
+                <div className="flex items-center text-primary">
+                  <CheckCircle2 size={20} className="mr-2" />
+                  <span className="font-medium">Summary V1 is recommended</span>
+                </div>
+              ) : results.overall.winner === "v2" ? (
+                <div className="flex items-center text-secondary">
+                  <CheckCircle2 size={20} className="mr-2" />
+                  <span className="font-medium">Summary V2 is recommended</span>
+                </div>
+              ) : (
+                <div className="flex items-center text-muted-foreground">
+                  <HelpCircle size={20} className="mr-2" />
+                  <span className="font-medium">Both summaries are equally effective</span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
+                <span className="text-sm text-muted-foreground mr-1">V1:</span>
+                <span className="font-medium">{((
+                  results.truthfulness.v1Score +
+                  results.clarity.v1Score +
+                  results.conciseness.v1Score +
+                  results.relevance.v1Score +
+                  results.completeness.v1Score +
+                  (results.notes.v1Score * 2)
+                ) / 7).toFixed(1)}/10</span>
               </div>
-            ) : results.overall.winner === "v2" ? (
-              <div className="flex items-center text-secondary">
-                <CheckCircle2 size={20} className="mr-2" />
-                <span className="font-medium">Summary V2 is recommended</span>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-teal-500 mr-2"></div>
+                <span className="text-sm text-muted-foreground mr-1">V2:</span>
+                <span className="font-medium">{((
+                  results.truthfulness.v2Score +
+                  results.clarity.v2Score +
+                  results.conciseness.v2Score +
+                  results.relevance.v2Score +
+                  results.completeness.v2Score +
+                  (results.notes.v2Score * 2)
+                ) / 7).toFixed(1)}/10</span>
               </div>
-            ) : (
-              <div className="flex items-center text-muted-foreground">
-                <HelpCircle size={20} className="mr-2" />
-                <span className="font-medium">Both summaries are equally effective</span>
-              </div>
-            )}
+            </div>
           </div>
           <p className="text-muted-foreground">{results.overall.explanation}</p>
         </div>

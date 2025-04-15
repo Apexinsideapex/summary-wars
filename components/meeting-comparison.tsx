@@ -13,6 +13,7 @@ import { evaluateSummaries } from "@/lib/evaluate-summaries"
 import { FileText, MessageSquare, ClipboardList, Sparkles, Crown } from "lucide-react"
 import { ParticleContainer } from "@/components/particle-container"
 import { saveEvaluationResult, getEvaluationResult, StoredEvaluationResult } from "@/lib/indexdb"
+import { splitTranscript } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 
 interface MeetingComparisonProps {
@@ -236,8 +237,34 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
           <Card className="gradient-bg border-border/30">
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-4">Meeting Transcript</h3>
-              <div className="prose prose-invert max-w-none">
-                <MarkdownRenderer content={meeting.transcript} />
+              <div className="space-y-4">
+                {splitTranscript(meeting.transcript).map((segment, index) => {
+                  if (segment.speaker === 'Me' || segment.speaker === 'Them') {
+                    const message = segment.text
+                    return (
+                      <div 
+                        key={index} 
+                        className={cn(
+                          "flex gap-4 p-4 rounded-lg",
+                          segment.speaker === 'Me' 
+                            ? "bg-primary/10 border border-primary/20" 
+                            : "bg-secondary/10 border border-secondary/20"
+                        )}
+                      >
+                        <div className={cn(
+                          "font-medium text-sm px-2 py-1 rounded-md h-fit",
+                          segment.speaker === 'Me' 
+                            ? "bg-primary/20 text-primary" 
+                            : "bg-secondary/20 text-secondary"
+                        )}>
+                          {segment.speaker}
+                        </div>
+                        <div className="flex-1">{message}</div>
+                      </div>
+                    )
+                  }
+                  return segment.text ? <p key={index} className="text-muted-foreground text-sm">{segment.text}</p> : null
+                })}
               </div>
             </div>
           </Card>
