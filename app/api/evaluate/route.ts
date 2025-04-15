@@ -1,9 +1,20 @@
 import { OpenAI } from "openai"
 import { NextResponse } from "next/server"
 
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error("Missing environment variable: OPENAI_API_KEY")
+}
+
 export async function POST(request: Request) {
   try {
     const { meeting } = await request.json()
+
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: "OpenAI API key not configured" },
+        { status: 500 }
+      )
+    }
 
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -111,26 +122,37 @@ export async function POST(request: Request) {
     // Return mock data for demo purposes
     return NextResponse.json({
       truthfulness: {
-        v1Score: 8,
-        v2Score: 7,
+        v1Score: 1,
+        v2Score: 1,
         explanation:
           "Summary V1 more accurately reflects the meeting content with specific details about Q3 and Q4 priorities.",
       },
       clarity: {
-        v1Score: 7,
-        v2Score: 9,
+        v1Score: 1,
+        v2Score: 1,
         explanation: "Summary V2 is more concise and easier to read with better flow between topics.",
       },
       conciseness: {
-        v1Score: 6,
-        v2Score: 9,
+        v1Score: 1,
+        v2Score: 1,
         explanation: "Summary V2 is significantly more concise while maintaining key information.",
       },
       relevance: {
-        v1Score: 8,
-        v2Score: 8,
+        v1Score: 1,
+        v2Score: 1,
         explanation: "Both summaries capture the key points about the roadmap priorities equally well.",
       },
+      completeness: {
+        v1Score: 1,
+        v2Score: 1,
+        explanation: "Summary V2 is more complete and covers all the important points of the meeting.",
+      },
+      notes: {
+        v1Score: 1,
+        v2Score: 1,
+        explanation: "Summary V2 is more complete and covers all the important points of the meeting.",
+      },
+
       overall: {
         winner: "v2",
         explanation:

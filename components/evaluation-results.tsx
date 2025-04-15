@@ -61,15 +61,15 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
       {
         label: "Summary V1",
         data: criteriaItems.map((item) => item.data.v1Score),
-        backgroundColor: "rgba(149, 128, 255, 0.2)",
-        borderColor: "rgba(149, 128, 255, 1)",
+        backgroundColor: "rgba(168, 85, 247, 0.2)",
+        borderColor: "rgb(168, 85, 247)",
         borderWidth: 2,
       },
       {
         label: "Summary V2",
         data: criteriaItems.map((item) => item.data.v2Score),
-        backgroundColor: "rgba(56, 139, 253, 0.2)",
-        borderColor: "rgba(56, 139, 253, 1)",
+        backgroundColor: "rgba(20, 184, 166, 0.2)",
+        borderColor: "rgb(20, 184, 166)",
         borderWidth: 2,
       },
     ],
@@ -140,12 +140,12 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
 
                   <div className="flex justify-between mb-2">
                     <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-primary mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
                       <span className="text-sm text-muted-foreground">V1:</span>
                       <span className="ml-1 font-medium">{item.data.v1Score}/10</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-secondary mr-2"></div>
+                      <div className="w-3 h-3 rounded-full bg-teal-500 mr-2"></div>
                       <span className="text-sm text-muted-foreground">V2:</span>
                       <span className="ml-1 font-medium">{item.data.v2Score}/10</span>
                     </div>
@@ -155,7 +155,7 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
                     <div className="flex mb-2 items-center justify-between">
                       <div className="w-full bg-muted/50 rounded-full h-2">
                         <motion.div
-                          className="bg-primary h-2 rounded-full"
+                          className="bg-purple-500 h-2 rounded-full"
                           initial={{ width: 0 }}
                           animate={{ width: `${(item.data.v1Score / 10) * 100}%` }}
                           transition={{ duration: 0.5, delay: 0.3 }}
@@ -165,7 +165,7 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
                     <div className="flex mb-2 items-center justify-between">
                       <div className="w-full bg-muted/50 rounded-full h-2">
                         <motion.div
-                          className="bg-secondary h-2 rounded-full"
+                          className="bg-teal-500 h-2 rounded-full"
                           initial={{ width: 0 }}
                           animate={{ width: `${(item.data.v2Score / 10) * 100}%` }}
                           transition={{ duration: 0.5, delay: 0.5 }}
@@ -181,10 +181,10 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
           </div>
         </Card>
 
-        <Card className="gradient-bg border-border/30">
-          <div className="p-6">
+        <Card className="gradient-bg border-border/30 h-full">
+          <div className="p-6 flex flex-col h-full">
             <h3 className="text-lg font-semibold mb-4">Score Visualization</h3>
-            <div className="h-64">
+            <div className="flex-1 flex items-center justify-center">
               <RadarChart data={chartData} />
             </div>
           </div>
