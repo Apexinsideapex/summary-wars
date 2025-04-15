@@ -12,7 +12,7 @@ import { EvaluationResults } from "@/components/evaluation-results"
 import { evaluateSummaries } from "@/lib/evaluate-summaries"
 import { FileText, MessageSquare, ClipboardList, Sparkles, Crown } from "lucide-react"
 import { ParticleContainer } from "@/components/particle-container"
-import { saveEvaluationResult, getEvaluationResult } from "@/lib/indexdb"
+import { saveEvaluationResult, getEvaluationResult, StoredEvaluationResult } from "@/lib/indexdb"
 import { cn } from "@/lib/utils"
 
 interface MeetingComparisonProps {
@@ -22,30 +22,54 @@ interface MeetingComparisonProps {
 export function MeetingComparison({ meeting }: MeetingComparisonProps) {
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [evaluationResults, setEvaluationResults] = useState<any | null>(null)
-  const [evaluationMode, setEvaluationMode] = useState<"4o-mini" | "o3-high">("4o-mini")
+  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-high">("4.1")
+  const [savedResults, setSavedResults] = useState<Record<"4.1" | "o3-high", any>>({
+    "4.1": null,
+    "o3-high": null
+  })
 
   useEffect(() => {
     // Load saved evaluation results when component mounts
     const loadSavedResults = async () => {
       try {
-        const savedResults = await getEvaluationResult(meeting.id)
-        if (savedResults) {
-          setEvaluationResults(savedResults.results)
+        const savedResults = await getEvaluationResult(meeting.id) as StoredEvaluationResult[];
+        if (savedResults.length > 0) {
+          // Store results by model
+          const resultsByModel = savedResults.reduce((acc, result) => ({
+            ...acc,
+            [result.model]: result.results
+          }), {} as Record<"4.1" | "o3-high", any>);
+          
+          setSavedResults(resultsByModel);
+          // Set current evaluation results based on selected mode
+          if (resultsByModel[evaluationMode]) {
+            setEvaluationResults(resultsByModel[evaluationMode]);
+          }
         }
       } catch (error) {
-        console.error("Error loading saved evaluation results:", error)
+        console.error("Error loading saved evaluation results:", error);
       }
-    }
-    loadSavedResults()
-  }, [meeting.id])
+    };
+    loadSavedResults();
+  }, [meeting.id]);
+
+  // Update displayed results when mode changes
+  useEffect(() => {
+    setEvaluationResults(savedResults[evaluationMode])
+  }, [evaluationMode, savedResults])
 
   const handleEvaluate = async () => {
     setIsEvaluating(true)
     try {
       const results = await evaluateSummaries(meeting, evaluationMode)
       setEvaluationResults(results)
-      // Save results to IndexedDB
-      await saveEvaluationResult(meeting.id, results)
+      // Save results to IndexedDB with model information
+      await saveEvaluationResult(meeting.id, results, evaluationMode)
+      // Update saved results
+      setSavedResults(prev => ({
+        ...prev,
+        [evaluationMode]: results
+      }))
     } catch (error) {
       console.error("Error evaluating summaries:", error)
     } finally {
@@ -63,27 +87,32 @@ export function MeetingComparison({ meeting }: MeetingComparisonProps) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold glow-text">{meeting.title}</h1>
+          {savedResults["4.1"] && savedResults["o3-high"] && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Evaluated with both models
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <ToggleGroup
             type="single"
             value={evaluationMode}
-            onValueChange={(value) => value && setEvaluationMode(value as "4o-mini" | "o3-high")}
+            onValueChange={(value) => value && setEvaluationMode(value as "4.1" | "o3-high")}
             className="bg-muted/30 p-1 rounded-lg"
           >
             <ToggleGroupItem
-              value="4o-mini"
-              aria-label="4o-mini evaluation"
+              value="4.1"
+              aria-label="4.1 evaluation"
               className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
             >
-              4o-mini
+              4.1 {savedResults["4.1"] && "✓"}
             </ToggleGroupItem>
             <ToggleGroupItem
               value="o3-high"
               aria-label="o3-high evaluation"
               className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
             >
-              o3-high
+              o3-high {savedResults["o3-high"] && "✓"}
             </ToggleGroupItem>
           </ToggleGroup>
           <Button

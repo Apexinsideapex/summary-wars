@@ -23,43 +23,70 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { cn } from "@/lib/utils"
 
 export default function Home() {
-  const [evaluationResults, setEvaluationResults] = useState<Record<number, StoredEvaluationResult>>({})
+  const [evaluationResults, setEvaluationResults] = useState<Record<number, Partial<Record<"4.1" | "o3-high", StoredEvaluationResult>>>>({})
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [progress, setProgress] = useState(0)
   const [remainingEvals, setRemainingEvals] = useState(0)
   const [aggregateResults, setAggregateResults] = useState<any | null>(null)
+  const [evaluationMode, setEvaluationMode] = useState<"4.1" | "o3-high">("4.1")
 
   useEffect(() => {
     loadAllResults()
   }, [])
 
+  useEffect(() => {
+    // Update displayed results when mode changes
+    if (Object.keys(evaluationResults).length > 0) {
+      calculateAggregateResults(evaluationResults, evaluationMode)
+    }
+  }, [evaluationMode, evaluationResults])
+
   const loadAllResults = async () => {
     try {
       const results = await getAllEvaluationResults()
       const resultsMap = results.reduce((acc, result) => {
-        acc[result.meetingId] = result
+        if (!acc[result.meetingId]) {
+          acc[result.meetingId] = {}
+        }
+        acc[result.meetingId][result.model] = result
         return acc
-      }, {} as Record<number, StoredEvaluationResult>)
+      }, {} as Record<number, Partial<Record<"4.1" | "o3-high", StoredEvaluationResult>>>)
+      
       setEvaluationResults(resultsMap)
-      updateRemainingEvals(resultsMap)
+      updateRemainingEvals(resultsMap, evaluationMode)
       if (Object.keys(resultsMap).length > 0) {
-        calculateAggregateResults(resultsMap)
+        calculateAggregateResults(resultsMap, evaluationMode)
       }
     } catch (error) {
       console.error("Error loading evaluation results:", error)
     }
   }
 
-  const updateRemainingEvals = (resultsMap: Record<number, StoredEvaluationResult>) => {
-    const remaining = meetings.filter(m => !resultsMap[m.id]).length
+  const updateRemainingEvals = (
+    resultsMap: Record<number, Partial<Record<"4.1" | "o3-high", StoredEvaluationResult>>>, 
+    mode: "4.1" | "o3-high"
+  ) => {
+    const remaining = meetings.filter(m => !resultsMap[m.id] || !resultsMap[m.id][mode]).length
     setRemainingEvals(remaining)
   }
 
-  const calculateAggregateResults = (resultsMap: Record<number, StoredEvaluationResult>) => {
-    const allResults = Object.values(resultsMap).map(r => r.results)
-    if (allResults.length === 0) return
+  const calculateAggregateResults = (
+    resultsMap: Record<number, Partial<Record<"4.1" | "o3-high", StoredEvaluationResult>>>, 
+    mode: "4.1" | "o3-high"
+  ) => {
+    const filteredResults = Object.values(resultsMap)
+      .map(modelResults => modelResults[mode])
+      .filter((r): r is StoredEvaluationResult => r !== undefined);
+      
+    const allResults = filteredResults.map(r => r.results);
+    if (allResults.length === 0) {
+      setAggregateResults(null);
+      return;
+    }
 
     const aggregate = {
       truthfulness: { v1Score: 0, v2Score: 0, explanation: "" },
@@ -123,7 +150,10 @@ export default function Home() {
 
   const handleEvaluateAll = async () => {
     setIsEvaluating(true)
-    const unevaluatedMeetings = meetings.filter(m => !evaluationResults[m.id])
+    const unevaluatedMeetings = meetings.filter(m => 
+      !evaluationResults[m.id] || 
+      !evaluationResults[m.id][evaluationMode]
+    )
     const total = unevaluatedMeetings.length
 
     if (total === 0) {
@@ -136,13 +166,20 @@ export default function Home() {
 
     for (const meeting of unevaluatedMeetings) {
       try {
-        const results = await evaluateSummaries(meeting, "4o-mini")
-        await saveEvaluationResult(meeting.id, results)
-        newResults[meeting.id] = {
+        const results = await evaluateSummaries(meeting, evaluationMode)
+        await saveEvaluationResult(meeting.id, results, evaluationMode)
+        
+        if (!newResults[meeting.id]) {
+          newResults[meeting.id] = {}
+        }
+        
+        newResults[meeting.id][evaluationMode] = {
           meetingId: meeting.id,
           results,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          model: evaluationMode
         }
+        
         completed++
         setProgress((completed / total) * 100)
       } catch (error) {
@@ -151,7 +188,7 @@ export default function Home() {
     }
 
     setEvaluationResults(newResults)
-    calculateAggregateResults(newResults)
+    calculateAggregateResults(newResults, evaluationMode)
     setRemainingEvals(0)
     setIsEvaluating(false)
     setProgress(0)
@@ -186,37 +223,36 @@ export default function Home() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {meetings.map((meeting, index) => (
+            {meetings.map((meeting) => (
               <motion.div
                 key={meeting.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
               >
                 <a href={`/meetings/${meeting.id}`} className="block h-full">
                   <div className="h-full gradient-bg rounded-xl p-6 border border-border/30 card-elevation hover:border-primary/30 transition-colors">
                     <h2 className="text-xl font-semibold mb-4">{meeting.title}</h2>
                     
-                    {evaluationResults[meeting.id] ? (
+                    {evaluationResults[meeting.id]?.[evaluationMode] ? (
                       <div className="space-y-2">
                         <Badge
-                          variant={evaluationResults[meeting.id].results.overall.winner === "tie" ? "outline" : "default"}
+                          variant={evaluationResults[meeting.id]![evaluationMode]!.results.overall.winner === "tie" ? "outline" : "default"}
                           className={`
                             px-3 py-1 text-sm font-medium
                             ${
-                              evaluationResults[meeting.id].results.overall.winner === "v1"
+                              evaluationResults[meeting.id]![evaluationMode]!.results.overall.winner === "v1"
                                 ? "bg-primary text-primary-foreground"
-                                : evaluationResults[meeting.id].results.overall.winner === "v2"
+                                : evaluationResults[meeting.id]![evaluationMode]!.results.overall.winner === "v2"
                                   ? "bg-secondary text-secondary-foreground"
                                   : "bg-muted text-muted-foreground border-border"
                             }
                           `}
                         >
-                          {evaluationResults[meeting.id].results.overall.winner === "v1" ? (
+                          {evaluationResults[meeting.id]![evaluationMode]!.results.overall.winner === "v1" ? (
                             <>
                               <CheckCircle2 size={14} className="mr-1" /> Summary V1 is better
                             </>
-                          ) : evaluationResults[meeting.id].results.overall.winner === "v2" ? (
+                          ) : evaluationResults[meeting.id]![evaluationMode]!.results.overall.winner === "v2" ? (
                             <>
                               <CheckCircle2 size={14} className="mr-1" /> Summary V2 is better
                             </>
@@ -226,13 +262,18 @@ export default function Home() {
                             </>
                           )}
                         </Badge>
-                        <p className="text-xs text-muted-foreground">
-                          Last evaluated: {new Date(evaluationResults[meeting.id].timestamp).toLocaleDateString()}
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-muted-foreground">
+                            Last evaluated: {new Date(evaluationResults[meeting.id]![evaluationMode]!.timestamp).toLocaleDateString()}
+                          </p>
+                          <Badge variant="outline" className="text-xs">
+                            {evaluationResults[meeting.id]![evaluationMode]!.model}
+                          </Badge>
+                        </div>
                       </div>
                     ) : (
                       <Badge variant="outline" className="bg-muted/30 text-muted-foreground border-border">
-                        Not evaluated
+                        Not evaluated with {evaluationMode}
                       </Badge>
                     )}
                   </div>
@@ -243,13 +284,41 @@ export default function Home() {
 
           <div className="mt-8 space-y-6">
             <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold glow-text mb-2">Batch Evaluation</h2>
-                {remainingEvals > 0 && (
-                  <p className="text-muted-foreground">
-                    {remainingEvals} meeting{remainingEvals !== 1 ? 's' : ''} remaining to evaluate
-                  </p>
-                )}
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold glow-text">Batch Evaluation</h2>
+                <div className="flex items-center gap-4">
+                  <ToggleGroup
+                    type="single"
+                    value={evaluationMode}
+                    onValueChange={(value) => {
+                      if (value) {
+                        setEvaluationMode(value as "4.1" | "o3-high")
+                        updateRemainingEvals(evaluationResults, value as "4.1" | "o3-high")
+                      }
+                    }}
+                    className="bg-muted/30 p-1 rounded-lg"
+                  >
+                    <ToggleGroupItem
+                      value="4.1"
+                      aria-label="4.1"
+                      className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
+                    >
+                      4.1
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="o3-high"
+                      aria-label="o3-high"
+                      className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-1 rounded"
+                    >
+                      o3-high
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                  {remainingEvals > 0 && (
+                    <p className="text-muted-foreground">
+                      {remainingEvals} meeting{remainingEvals !== 1 ? 's' : ''} remaining to evaluate
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <AlertDialog>

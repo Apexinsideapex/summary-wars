@@ -1,5 +1,6 @@
 import { OpenAI } from "openai"
 import { NextResponse } from "next/server"
+import { defaultPrompt, o3HighPrompt } from "@/app/utils/prompts"
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing environment variable: OPENAI_API_KEY")
@@ -21,78 +22,29 @@ export async function POST(request: Request) {
     })
 
     // Index DB, Tune prompt, highlight winner, fix side bar: remove analytics settings and user. 
-    const prompt = `
-      You are an expert at evaluating meeting summaries. You will be provided with two versions of a summary for the same meeting, along with the meeting transcript and notes.
-      
-      Your task is to evaluate both summaries based on the following criteria:
-      1. Truthfulness: How accurately does the summary reflect what was actually discussed in the meeting?
-      2. Clarity: How clear and easy to understand is the summary?
-      3. Conciseness: How well does the summary capture the key points without unnecessary details?
-      4. Relevance: How well does the summary focus on the most important aspects of the meeting?
-      5. Completeness: How well does the summary cover all the important points of the meeting?
-      6. Notes: How well does the summary capture the notes from the meeting?
-      
-      For each criterion, provide a score out of 10 for each summary version and a brief explanation.
-      
-      Finally, provide an overall assessment of which summary is better and why.
-      
+    const meetingDataString = `
       Meeting Title: ${meeting.title}
-      
+
       Transcript:
       ${meeting.transcript}
-      
+
       Notes:
       ${meeting.notes}
-      
+
       Summary V1:
       ${meeting.summary1}
-      
+
       Summary V2:
       ${meeting.summary2}
-      
-      Provide your evaluation in the following JSON format:
-      {
-        "truthfulness": {
-          "v1Score": number,
-          "v2Score": number,
-          "explanation": "string"
-        },
-        "clarity": {
-          "v1Score": number,
-          "v2Score": number,
-          "explanation": "string"
-        },
-        "conciseness": {
-          "v1Score": number,
-          "v2Score": number,
-          "explanation": "string"
-        },
-        "relevance": {
-          "v1Score": number,
-          "v2Score": number,
-          "explanation": "string"
-        },
-        "completeness": {
-          "v1Score": number,
-          "v2Score": number,
-          "explanation": "string"
-        },
-        "notes": {
-          "v1Score": number,
-          "v2Score": number,
-          "explanation": "string"
-        },
-        "overall": {
-          "winner": "v1" or "v2" or "tie",
-          "explanation": "string"
-        }
-      }
     `
+    
+
 
     let response = await openai.responses.create({
-      model: 'gpt-4o-mini',
-      input: prompt,
-      text: { format: { type: "json_object" } }
+      model: 'gpt-4.1',
+      input: defaultPrompt + meetingDataString,
+      text: { format: { type: "json_object" } },
+      temperature: 0.2
     })
 
     // let response = await openai.chat.completions.create({
@@ -106,11 +58,11 @@ export async function POST(request: Request) {
       console.log("Using o3-high")
     response = await openai.responses.create({
       model: "o3-mini",
-      input: prompt,
+      input: o3HighPrompt + meetingDataString,
       reasoning: {
         effort: 'high'
       },
-      text: { format: { type: "json_object" } }
+      text: { format: { type: "json_object" } },
       })
     } 
 

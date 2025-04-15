@@ -1,6 +1,6 @@
 import type { EvalData } from "@/types"
 
-export async function evaluateSummaries(meeting: EvalData, mode: "4o-mini" | "o3-high" = "4o-mini") {
+export async function evaluateSummaries(meeting: EvalData, mode: "4.1" | "o3-high" = "4.1") {
   try {
     const response = await fetch("/api/evaluate", {
       method: "POST",
@@ -17,35 +17,6 @@ export async function evaluateSummaries(meeting: EvalData, mode: "4o-mini" | "o3
     return await response.json()
   } catch (error) {
     console.error("Error evaluating summaries:", error)
-
-    // Return mock data for demo purposes
-    return {
-      truthfulness: {
-        v1Score: 8,
-        v2Score: 7,
-        explanation:
-          "Summary V1 more accurately reflects the meeting content with specific details about Q3 and Q4 priorities.",
-      },
-      clarity: {
-        v1Score: 7,
-        v2Score: 9,
-        explanation: "Summary V2 is more concise and easier to read with better flow between topics.",
-      },
-      conciseness: {
-        v1Score: 6,
-        v2Score: 9,
-        explanation: "Summary V2 is significantly more concise while maintaining key information.",
-      },
-      relevance: {
-        v1Score: 8,
-        v2Score: 8,
-        explanation: "Both summaries capture the key points about the roadmap priorities equally well.",
-      },
-      overall: {
-        winner: "v2",
-        explanation:
-          "While Summary V1 contains more details, Summary V2 achieves a better balance of conciseness and clarity while maintaining the essential information.",
-      },
-    }
+    throw error // Let the caller handle the error
   }
 }
